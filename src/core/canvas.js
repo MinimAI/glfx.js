@@ -1,5 +1,10 @@
 var gl;
 
+/** sets default arguments **/
+function pick(arg, def) {
+    return (typeof arg == 'undefined' ? def : arg);
+}
+
 function clamp(lo, value, hi) {
     return Math.max(lo, Math.min(value, hi));
 }
@@ -130,10 +135,15 @@ function wrap(func) {
     };
 }
 
-exports.canvas = function() {
+exports.canvas = function(options) {
+
+    options = pick(options, {});
+    options.alpha = pick(options.alpha, false);
+    options.premultipliedAlpha = pick(options.premultipliedAlpha, false);
+
     var canvas = document.createElement('canvas');
     try {
-        gl = canvas.getContext('experimental-webgl', { alpha: false, premultipliedAlpha: false });
+        gl = canvas.getContext('experimental-webgl', options);
     } catch (e) {
         gl = null;
     }
@@ -162,7 +172,7 @@ exports.canvas = function() {
     canvas.hexagonalPixelate = wrap(hexagonalPixelate);
     canvas.hueSaturation = wrap(hueSaturation);
     canvas.colorHalftone = wrap(colorHalftone);
-    canvas.triangleBlur = wrap(triangleBlur);    
+    canvas.triangleBlur = wrap(triangleBlur);
     canvas.fastBlur = wrap(fastBlur);
     canvas.unsharpMask = wrap(unsharpMask);
     canvas.perspective = wrap(perspective);
@@ -207,7 +217,7 @@ exports.canvas = function() {
     canvas.grid = wrap(grid);
     canvas.kaleidoscope = wrap(kaleidoscope);
     canvas.tile = wrap(tile);
-    canvas.denoisefast = wrap(denoisefast);    
+    canvas.denoisefast = wrap(denoisefast);
     canvas.localContrast=wrap(localContrast);
     canvas.preview=wrap(preview);
     canvas.life=wrap(life);
@@ -220,7 +230,7 @@ exports.canvas = function() {
     canvas.mandelbrot=wrap(mandelbrot);
     canvas.timeshift=wrap(timeshift);
     canvas.reaction=wrap(reaction);
-    canvas.relief=wrap(relief);  
+    canvas.relief=wrap(relief);
     canvas.transform=wrap(transform);
     canvas.polygon = wrap(polygon);
     canvas.matte = wrap(matte);
@@ -230,7 +240,7 @@ exports.canvas = function() {
     canvas.color = wrap(color);
     canvas.levels = wrap(levels);
     canvas.absolute = wrap(absolute);
-    canvas.rainbow = wrap(rainbow);    
+    canvas.rainbow = wrap(rainbow);
     canvas.sobel = wrap(sobel);
     canvas.toHSV = wrap(toHSV);
     canvas.invertColor = wrap(invertColor);
