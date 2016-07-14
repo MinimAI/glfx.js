@@ -1,6 +1,6 @@
 var Texture = (function() {
     Texture.fromElement = function(element) {
-        var texture = new Texture(0, 0, gl.RGBA, gl.UNSIGNED_BYTE);
+        var texture = new Texture(0, 0, gl.RGB, gl.UNSIGNED_BYTE);
         texture.loadContentsOf(element);
         return texture;
     };
@@ -21,6 +21,11 @@ var Texture = (function() {
         if (width && height) gl.texImage2D(gl.TEXTURE_2D, 0, this.format, width, height, 0, this.format, this.type, null);
     }
 
+    Texture.prototype.load = function(data) {
+        gl.bindTexture(gl.TEXTURE_2D, this.id);
+        gl.texImage2D(gl.TEXTURE_2D, 0, this.format, this.width, this.height, 0, this.format, this.type, data);
+    };
+    
     Texture.prototype.loadContentsOf = function(element) {
         this.width = element.width || element.videoWidth;
         this.height = element.height || element.videoHeight;
@@ -73,21 +78,39 @@ var Texture = (function() {
         }
     };
 
-    Texture.prototype.drawTo = function(callback) {
+    Texture.prototype.drawTo = function(callback,with_depth) {
         // start rendering to this texture
         gl.framebuffer = gl.framebuffer || gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, gl.framebuffer);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.id, 0);
-        if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
-            throw new Error('incomplete framebuffer');
+                
+        if(with_depth)
+        {
+          if(!this.depthbuffer)
+          {
+            this.depthbuffer=gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, this.depthbuffer);
+            gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.width, this.height);
+          }
+          gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.depthbuffer);          
         }
+        
+        // TODO this forces GPU sync it seems, CPU is waiting. 
+        // If removed, the load seem to show off on another GL feedback method (eg. getParameter) .
+        /*if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+            throw new Error('incomplete framebuffer');
+        }*/
+        var base_viewport=gl.current_viewport;
         gl.viewport(0, 0, this.width, this.height);
+        gl.current_viewport=[0, 0, this.width, this.height];
 
         // do the drawing
         callback();
 
         // stop rendering to this texture
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, null);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.current_viewport=base_viewport;
     };
 
     var canvas = null;

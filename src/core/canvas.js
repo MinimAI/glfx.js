@@ -1,5 +1,10 @@
 var gl;
 
+/** sets default arguments **/
+function pick(arg, def) {
+    return (typeof arg == 'undefined' ? def : arg);
+}
+
 function clamp(lo, value, hi) {
     return Math.max(lo, Math.min(value, hi));
 }
@@ -45,6 +50,7 @@ function initialize(width, height) {
     if (this._.spareTexture) this._.spareTexture.destroy();
     this.width = width;
     this.height = height;
+    gl.current_viewport=[0, 0, width, height]; // our own viewport cache
     this._.texture = new Texture(width, height, gl.RGBA, type);
     this._.spareTexture = new Texture(width, height, gl.RGBA, type);
     this._.extraTexture = this._.extraTexture || new Texture(0, 0, gl.RGBA, type);
@@ -64,7 +70,7 @@ function initialize(width, height) {
    are used.
 */
 function draw(texture, width, height) {
-    if (!this._.isInitialized || texture._.width != this.width || texture._.height != this.height) {
+   if (!this._.isInitialized || texture._.width != this.width || texture._.height != this.height) {
         initialize.call(this, width ? width : texture._.width, height ? height : texture._.height);
     }
 
@@ -129,10 +135,15 @@ function wrap(func) {
     };
 }
 
-exports.canvas = function() {
-    var canvas = (cid) ? document.getElementById(cid) : document.createElement('canvas');
+exports.canvas = function(options) {
+
+    options = pick(options, {});
+    options.alpha = pick(options.alpha, false);
+    options.premultipliedAlpha = pick(options.premultipliedAlpha, false);
+
+    var canvas = document.createElement('canvas');
     try {
-        gl = canvas.getContext('experimental-webgl', { premultipliedAlpha: false });
+        gl = canvas.getContext('experimental-webgl', options);
     } catch (e) {
         gl = null;
     }
@@ -149,6 +160,7 @@ exports.canvas = function() {
 
     // Core methods
     canvas.texture = wrap(texture);
+    canvas.initialize=wrap(initialize);
     canvas.draw = wrap(draw);
     canvas.update = wrap(update);
     canvas.replace = wrap(replace);
@@ -161,6 +173,7 @@ exports.canvas = function() {
     canvas.hueSaturation = wrap(hueSaturation);
     canvas.colorHalftone = wrap(colorHalftone);
     canvas.triangleBlur = wrap(triangleBlur);
+    canvas.fastBlur = wrap(fastBlur);
     canvas.unsharpMask = wrap(unsharpMask);
     canvas.perspective = wrap(perspective);
     canvas.matrixWarp = wrap(matrixWarp);
@@ -169,6 +182,8 @@ exports.canvas = function() {
     canvas.dotScreen = wrap(dotScreen);
     canvas.edgeWork = wrap(edgeWork);
     canvas.lensBlur = wrap(lensBlur);
+    canvas.erode = wrap(erode);
+    canvas.dilate = wrap(dilate);
     canvas.zoomBlur = wrap(zoomBlur);
     canvas.noise = wrap(noise);
     canvas.denoise = wrap(denoise);
@@ -178,19 +193,58 @@ exports.canvas = function() {
     canvas.vignette = wrap(vignette);
     canvas.vibrance = wrap(vibrance);
     canvas.sepia = wrap(sepia);
-    canvas.skin = wrap(skin);
-
-    // new filters methods
-    canvas.coloradjust = wrap(coloradjust);
+    // dronus' filter methods
+    canvas.capture = wrap(capture);
+    canvas.video = wrap(video);
+    canvas.stack_prepare=wrap(stack_prepare);
+    canvas.stack_push=wrap(stack_push);
+    canvas.stack_pop=wrap(stack_pop);
+    canvas.stack_swap=wrap(stack_swap);
+    canvas.blend=wrap(blend);
+    canvas.blend_alpha=wrap(blend_alpha);
+    canvas.colorkey=wrap(colorkey);
+    canvas.lumakey=wrap(lumakey);
+    canvas.displacement=wrap(displacement);
+    canvas.mesh_displacement=wrap(mesh_displacement);
+    canvas.patch_displacement=wrap(patch_displacement);
+    canvas.particles=wrap(particles);
+    canvas.posterize=wrap(posterize);
+//    canvas.=wrap();
+    canvas.superquadric=wrap(superquadric);
+    canvas.supershape=wrap(supershape);
+    canvas.feedbackIn = wrap(feedbackIn);
+    canvas.feedbackOut = wrap(feedbackOut);
+    canvas.grid = wrap(grid);
+    canvas.kaleidoscope = wrap(kaleidoscope);
+    canvas.tile = wrap(tile);
+    canvas.denoisefast = wrap(denoisefast);
+    canvas.localContrast=wrap(localContrast);
+    canvas.preview=wrap(preview);
+    canvas.life=wrap(life);
+    canvas.smoothlife=wrap(smoothlife);
+    canvas.ripple=wrap(ripple);
+    canvas.colorDisplacement=wrap(colorDisplacement);
+    canvas.analogize=wrap(analogize);
+    canvas.motion=wrap(motion);
+    canvas.gauze=wrap(gauze);
+    canvas.mandelbrot=wrap(mandelbrot);
+    canvas.timeshift=wrap(timeshift);
+    canvas.reaction=wrap(reaction);
+    canvas.relief=wrap(relief);
+    canvas.transform=wrap(transform);
+    canvas.polygon = wrap(polygon);
+    canvas.matte = wrap(matte);
+    canvas.waveform=wrap(waveform);
+    canvas.spectrogram=wrap(spectrogram);
+    // hexapode's filters methods
     canvas.color = wrap(color);
-    canvas.exposure = wrap(exposure);
-    canvas.gamma = wrap(gamma);
-    canvas.gammaRGB = wrap(gammaRGB);
-    canvas.hue = wrap(hue);
+    canvas.levels = wrap(levels);
+    canvas.absolute = wrap(absolute);
+    canvas.rainbow = wrap(rainbow);
     canvas.sobel = wrap(sobel);
-    canvas.softContrast = wrap(softContrast);
     canvas.toHSV = wrap(toHSV);
     canvas.invertColor = wrap(invertColor);
+    canvas.noalpha = wrap(noalpha);
     canvas.mirror = wrap(mirror);
 
     return canvas;

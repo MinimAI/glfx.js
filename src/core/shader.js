@@ -36,10 +36,12 @@ var Shader = (function() {
     function Shader(vertexSource, fragmentSource) {
         this.vertexAttribute = null;
         this.texCoordAttribute = null;
+        this._attributes={};
+        this._element_count=0;
         this.program = gl.createProgram();
         vertexSource = vertexSource || defaultVertexSource;
         fragmentSource = fragmentSource || defaultFragmentSource;
-        fragmentSource = 'precision highp float;' + fragmentSource; // annoying requirement is annoying
+        fragmentSource = 'precision mediump float;' + fragmentSource; // annoying requirement is annoying
         gl.attachShader(this.program, compileSource(gl.VERTEX_SHADER, vertexSource));
         gl.attachShader(this.program, compileSource(gl.FRAGMENT_SHADER, fragmentSource));
         gl.linkProgram(this.program);
@@ -60,7 +62,7 @@ var Shader = (function() {
             var location = gl.getUniformLocation(this.program, name);
             if (location === null) continue; // will be null if the uniform isn't used in the shader
             var value = uniforms[name];
-            if (isArray(value)) {
+            if (isArray(value) || ArrayBuffer.isView(value)) {
                 switch (value.length) {
                     case 1: gl.uniform1fv(location, new Float32Array(value)); break;
                     case 2: gl.uniform2fv(location, new Float32Array(value)); break;
@@ -94,16 +96,18 @@ var Shader = (function() {
 
     Shader.prototype.drawRect = function(left, top, right, bottom) {
         var undefined;
-        var viewport = gl.getParameter(gl.VIEWPORT);
+        
+        var  viewport = gl.current_viewport;
+          
         top = top !== undefined ? (top - viewport[1]) / viewport[3] : 0;
         left = left !== undefined ? (left - viewport[0]) / viewport[2] : 0;
         right = right !== undefined ? (right - viewport[0]) / viewport[2] : 1;
         bottom = bottom !== undefined ? (bottom - viewport[1]) / viewport[3] : 1;
-        if (gl.vertexBuffer == null) {
+        if (gl.vertexBuffer == null) 
             gl.vertexBuffer = gl.createBuffer();
-        }
         gl.bindBuffer(gl.ARRAY_BUFFER, gl.vertexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([ left, top, left, bottom, right, top, right, bottom ]), gl.STATIC_DRAW);
+
         if (gl.texCoordBuffer == null) {
             gl.texCoordBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, gl.texCoordBuffer);
@@ -124,6 +128,40 @@ var Shader = (function() {
         gl.vertexAttribPointer(this.texCoordAttribute, 2, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     };
+
+
+    Shader.prototype.attributes=function(attributes,sizes){
+      for(key in attributes)
+      {
+        var attribute=this._attributes[key];
+        if(!attribute)
+        {
+          attribute={};
+          attribute.buffer=gl.createBuffer();
+          attribute.location=gl.getAttribLocation(this.program, key);
+          attribute.size=sizes[key];
+          gl.enableVertexAttribArray(attribute.location);          
+          this._attributes[key]=attribute;
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, attribute.buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(attributes[key]), gl.STATIC_DRAW);
+        this._element_count=attributes[key].length/attribute.size;
+      }
+    }
+
+    Shader.prototype.drawTriangles = function(mode){
+    
+        gl.useProgram(this.program);
+        for(key in this._attributes)
+        {
+          var attribute=this._attributes[key];
+          gl.bindBuffer(gl.ARRAY_BUFFER, attribute.buffer);
+          gl.vertexAttribPointer(attribute.location, attribute.size, gl.FLOAT, false, 0, 0);          
+        }
+        gl.drawArrays(typeof(mode)!='undefined' ? mode : gl.TRIANGLE_STRIP, 0, this._element_count);
+    };
+
 
     Shader.getDefaultShader = function() {
         gl.defaultShader = gl.defaultShader || new Shader();

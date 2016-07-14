@@ -7,11 +7,11 @@ output_path = 'glfx.js'
 import re, os, sys, time, tempfile
 
 header = '''/*
- * glfx.js
- * http://evanw.github.com/glfx.js/
+ * glfx.js {@link http://wassname.github.com/glfx.js/}
  *
- * Copyright 2011 Evan Wallace
- * Released under the MIT license
+ * @author Evan Wallace
+ * @copyright Copyright 2011 Evan Wallace.
+ * @licence {@link https://github.com/wassname/glfx.js/blob/master/LICENCE|MIT License}
  */
 '''
 
