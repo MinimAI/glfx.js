@@ -130,7 +130,7 @@ function wrap(func) {
 }
 
 exports.canvas = function() {
-    var canvas = document.createElement('canvas');
+    var canvas = (cid) ? document.getElementById(cid) : document.createElement('canvas');
     try {
         gl = canvas.getContext('experimental-webgl', { premultipliedAlpha: false });
     } catch (e) {
