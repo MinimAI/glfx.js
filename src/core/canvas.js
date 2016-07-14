@@ -180,6 +180,19 @@ exports.canvas = function() {
     canvas.sepia = wrap(sepia);
     canvas.skin = wrap(skin);
 
+    // new filters methods
+    canvas.coloradjust = wrap(coloradjust);
+    canvas.color = wrap(color);
+    canvas.exposure = wrap(exposure);
+    canvas.gamma = wrap(gamma);
+    canvas.gammaRGB = wrap(gammaRGB);
+    canvas.hue = wrap(hue);
+    canvas.sobel = wrap(sobel);
+    canvas.softContrast = wrap(softContrast);
+    canvas.toHSV = wrap(toHSV);
+    canvas.invertColor = wrap(invertColor);
+    canvas.mirror = wrap(mirror);
+
     return canvas;
 };
 exports.splineInterpolate = splineInterpolate;
