@@ -2,7 +2,7 @@
 
 module = 'fx'
 input_path = 'src/'
-output_path = 'glfx.js'
+output_path = 'dist/glfx.js'
 
 import re, os, sys, time, tempfile
 
