@@ -1,6 +1,6 @@
 {
   "name": "glfx",
-  "version": "0.0.2",
+  "version": "0.0.22",
   "description": "An image effects library for JavaScript using WebGL",
   "main": "dist/glfx.js",
   "moduleType": [
